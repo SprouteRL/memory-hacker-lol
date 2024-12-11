@@ -63,6 +63,11 @@ void Memory::Detach()
 	{
 		CloseHandle(handle);
 	}
+
+	for (auto& allocatedMem : allocatedMemory)
+	{
+		FreeMemory((uintptr_t)allocatedMem);
+	}
 }
 
 bool Memory::ChangeMemoryPage(const uintptr_t& address, const DWORD& newProtect, SIZE_T& size, DWORD* oldProtect)
