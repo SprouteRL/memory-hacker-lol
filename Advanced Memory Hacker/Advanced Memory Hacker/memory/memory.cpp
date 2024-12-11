@@ -140,9 +140,4 @@ Memory::Memory(const char* procName)
 Memory::~Memory()
 {
 	Detach();
-
-	for (auto& allocatedMem : allocatedMemory)
-	{
-		FreeMemory((uintptr_t)allocatedMem);
-	}
 }
