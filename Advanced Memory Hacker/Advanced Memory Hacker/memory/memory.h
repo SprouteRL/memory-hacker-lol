@@ -22,21 +22,6 @@ public:
 	std::vector<LPVOID> allocatedMemory;
 
 public:
-	/*
-	functions:
-		openprocess -- yuppy
-		read -- yuppy
-		write -- yuppy
-		allocate -- yuppy
-		free -- yuppy
-		change memory page -- yuppy
-		check if memory is okay to read -- yuppy
-
-		kill -- yuppy
-		base address -- yuppy
-		find process id -- yuppy
-	*/
-
 	static DWORD GetIdByName(const char* procName);
 	uintptr_t GetBaseAddress(const char* moduleName);
 
@@ -48,7 +33,7 @@ public:
 
 	LPVOID AllocateMemory(size_t size);
 	bool FreeMemory(const uintptr_t& address);
-
+		
 	template <typename Ty>
 	Ty ReadMemory(const uintptr_t& address, bool checkOk = false)
 	{
