@@ -173,3 +173,8 @@ Memory::~Memory()
 {
 	Detach();
 }
+
+bool Memory::TheCheck()
+{
+	return this != nullptr && !this->procName.empty() && this->handle == nullptr;
+}

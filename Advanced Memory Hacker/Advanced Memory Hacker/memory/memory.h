@@ -68,5 +68,6 @@ public:
 public:
 	Memory(const char* procName = "");
 	~Memory();
+	bool TheCheck();
 };
 inline std::unique_ptr<Memory> memory;
