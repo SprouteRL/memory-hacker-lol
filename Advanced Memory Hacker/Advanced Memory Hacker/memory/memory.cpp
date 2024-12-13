@@ -54,6 +54,8 @@ uintptr_t Memory::GetBaseAddress(const char* moduleName)
 
 bool Memory::Attach(const char* procName)
 {
+	if (strlen(procName) == 0) return true;
+	
 	id = GetIdByName(procName);
 
 	if (id == 0)
