@@ -74,9 +74,20 @@ void Memory::Detach()
 		CloseHandle(handle);
 	}
 
-	for (auto& allocatedMem : allocatedMemory)
+	if (!allocatedMemory.empty())
 	{
-		FreeMemory((uintptr_t)allocatedMem);
+		for (auto& allocatedMem : allocatedMemory)
+		{
+			FreeMemory((uintptr_t)allocatedMem);
+		}
+	}
+	if (!heldMutex.empty())
+	{
+		for (auto& mutex : heldMutex)
+		{
+			ReleaseMutex(mutex);
+			CloseHandle(mutex);
+		}
 	}
 }
 
@@ -129,6 +140,17 @@ bool Memory::FreeMemory(const uintptr_t& address)
 	{
 		return false;
 	}
+}
+
+bool Memory::m_CreateMutex(const LPSECURITY_ATTRIBUTES& attributes, const bool& initialOwner, const std::string& mutexName)
+{
+	HANDLE mutex = CreateMutexA(attributes, initialOwner, mutexName.c_str());
+	if (mutex != nullptr)
+	{
+		return true;
+		heldMutex.push_back(mutex);
+	}
+	return false;
 }
 
 bool Memory::KillProcess(const char* processName)

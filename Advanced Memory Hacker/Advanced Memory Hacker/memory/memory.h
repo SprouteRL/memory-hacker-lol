@@ -20,6 +20,7 @@ public:
 
 public:
 	std::vector<LPVOID> allocatedMemory;
+	std::vector<HANDLE> heldMutex;
 
 public:
 	static DWORD GetIdByName(const char* procName);
@@ -33,6 +34,8 @@ public:
 
 	LPVOID AllocateMemory(size_t size);
 	bool FreeMemory(const uintptr_t& address);
+
+	bool m_CreateMutex(const LPSECURITY_ATTRIBUTES& attributes, const bool& initialOwner, const std::string& mutexName);
 		
 	template <typename Ty>
 	Ty ReadMemory(const uintptr_t& address, bool checkOk = false)
