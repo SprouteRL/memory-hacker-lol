@@ -44,7 +44,7 @@ public:
 	{
 		Ty buffer = {};
 		if (!InitializeNtdll()) return buffer;
-		if (!handle) return buffer;
+		if (!this->handle) return buffer;
 
 		if (!IsMemoryOk(address) && checkOk) return buffer;
 
@@ -61,7 +61,7 @@ public:
 			std::cout << "init?" << "\n";
 			return false;
 		}
-		if (!handle) {
+		if (!this->handle) {
 			std::cout << "handle?" << "\n";
 			return false;
 		}
@@ -76,10 +76,30 @@ public:
 	template <typename Ty>
 	bool WriteMemory(const uintptr_t& address, const Ty& buffer, size_t size)
 	{
-		if (!InitializeNtdll()) return false;
-		if (!handle) return false;
+		std::cout << "hi\n";
 
-		if (!IsMemoryOk(address)) return false;
+		if (!InitializeNtdll()) {
+			std::cerr << "Failed to initialize Ntdll!" << std::endl;
+			return false;
+		}
+
+		/*if (!this->handle) {
+			std::cerr << "Invalid process handle!" << std::endl;
+			return false;
+		}*/
+
+		if (address == 0) {
+			std::cerr << "Invalid address: 0x" << std::hex << address << std::dec << std::endl;
+			return false;
+		}
+
+		if (!IsMemoryOk(address)) {
+			std::cerr << "Memory at address 0x" << std::hex << address << std::dec << " is not ok!" << std::endl;
+			return false;
+		}
+
+		// Debugging: Print buffer content
+		std::cout << "Writing " << size << " bytes to memory at address 0x" << std::hex << address << std::dec << std::endl;
 
 		return NtWriteVirtualMemory(handle, reinterpret_cast<LPVOID>(address), (PVOID)&buffer, size, nullptr) == 0;
 	}

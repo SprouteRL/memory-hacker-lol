@@ -167,6 +167,12 @@ bool Memory::KillProcess(const char* processName)
 
 bool Memory::StandardInject(const std::string& path)
 {
+	/*if (handle == nullptr)
+	{
+		std::cout << "Handle no.\n";
+		return false;
+	}
+
 	std::fstream x(path);
 	if (!x.good())
 	{
@@ -175,24 +181,25 @@ bool Memory::StandardInject(const std::string& path)
 	}
 	x.close();
 
-	LPVOID allocatedMemory = AllocateMemory(path.length() + 1);
-	if (allocatedMemory == nullptr)
+	void* allocatedMem = this->AllocateMemory(path.length());
+	if (allocatedMem == nullptr)
 	{
-		std::cerr << "failed to alloc mem. Error: " << utilsFuncs::GetLastErrorStr() << "\n";
-		return false;
+		std::cerr << "Failed to allocate memory. Last thread error: " << utilsFuncs::GetLastErrorStr() << "\n";
+		system("pause");
+		return 1;
+	}
+	if (!memory->WriteMemory(reinterpret_cast<uintptr_t>(allocatedMem), path.c_str(), path.length() + 1))
+	{
+		std::cerr << "Failed to write memory. Last thread error: " << utilsFuncs::GetLastErrorStr() << "\n";
+		system("pause");
+		return 1;
 	}
 
-	if (!WriteMemory(reinterpret_cast<uintptr_t>(allocatedMemory), path.c_str(), path.length() + 1))
-	{
-		std::cerr << "failed to wpm. Error: " << utilsFuncs::GetLastErrorStr() << "\n";
-		return false;
-	}
-
-	HANDLE remoteThread = CreateRemoteThread(handle, NULL, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(LoadLibraryA), allocatedMemory, 0, NULL);
-	if (remoteThread == NULL)
-	{
-		std::cerr << "failed CRT. Error: " << utilsFuncs::GetLastErrorStr() << "\n";
-		return false;
+	HANDLE remoteThread = CreateRemoteThread(handle, NULL, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(LoadLibraryA), allocatedMem, 0, NULL);
+	if (remoteThread == INVALID_HANDLE_VALUE) {
+		std::cerr << "Failed to get create remote thread.\n";
+		system("pause");
+		return 1;
 	}
 
 	WaitForSingleObject(remoteThread, INFINITE);
@@ -207,7 +214,8 @@ bool Memory::StandardInject(const std::string& path)
 
 	CloseHandle(remoteThread);
 
-	return threadExitCode != 0; 
+	return threadExitCode != 0; */
+	return true;
 }
 
 Memory::Memory(const char* procName)
