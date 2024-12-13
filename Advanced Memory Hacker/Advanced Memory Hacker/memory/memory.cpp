@@ -147,8 +147,8 @@ bool Memory::m_CreateMutex(const std::string& mutexName, const LPSECURITY_ATTRIB
 	HANDLE mutex = CreateMutexA(attributes, initialOwner, mutexName.c_str());
 	if (mutex != nullptr)
 	{
-		return true;
 		heldMutex.push_back(mutex);
+		return true;
 	}
 	return false;
 }
