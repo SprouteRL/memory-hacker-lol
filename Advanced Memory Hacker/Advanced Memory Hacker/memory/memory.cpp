@@ -11,7 +11,11 @@ DWORD Memory::GetIdByName(const char* procName)
 	{
 		do
 		{
+#ifdef UNICODE
+			if(wcscmp(pe.szExeFile, procName) == 0)
+#else
 			if (strcmp(pe.szExeFile, procName) == 0)
+#endif
 			{
 				return pe.th32ProcessID;
 			}
@@ -31,7 +35,11 @@ uintptr_t Memory::GetBaseAddress(const char* moduleName)
 	if (Module32First(hSnapshot, &ModuleEntry32)) 
 	{
 		do {
+#ifdef UNICODE
+			if(wcscmp(szModule, moduleName) == 0;)
+#else
 			if (strcmp(ModuleEntry32.szModule, moduleName) == 0) 
+#endif
 			{
 				dwModuleBaseAddress = (DWORD)ModuleEntry32.modBaseAddr;
 				break;
