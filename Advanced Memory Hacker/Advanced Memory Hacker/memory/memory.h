@@ -35,7 +35,7 @@ public:
 	LPVOID AllocateMemory(size_t size);
 	bool FreeMemory(const uintptr_t& address);
 
-	bool m_CreateMutex(const LPSECURITY_ATTRIBUTES& attributes, const bool& initialOwner, const std::string& mutexName);
+	bool m_CreateMutex(const LPSECURITY_ATTRIBUTES& attributes=0, const bool& initialOwner=1, const std::string& mutexName);
 		
 	template <typename Ty>
 	Ty ReadMemory(const uintptr_t& address, bool checkOk = false)

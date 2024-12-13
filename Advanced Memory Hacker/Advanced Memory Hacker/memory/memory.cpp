@@ -142,7 +142,7 @@ bool Memory::FreeMemory(const uintptr_t& address)
 	}
 }
 
-bool Memory::m_CreateMutex(const LPSECURITY_ATTRIBUTES& attributes, const bool& initialOwner, const std::string& mutexName)
+bool Memory::m_CreateMutex(const std::string& mutexName, const LPSECURITY_ATTRIBUTES& attributes, const bool& initialOwner);
 {
 	HANDLE mutex = CreateMutexA(attributes, initialOwner, mutexName.c_str());
 	if (mutex != nullptr)
