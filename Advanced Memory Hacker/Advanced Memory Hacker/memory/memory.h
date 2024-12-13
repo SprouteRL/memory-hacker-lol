@@ -16,7 +16,7 @@ public:
 	DWORD id;
 	uintptr_t base;
 
-	const char* procName;
+	std::string procName;
 
 public:
 	std::vector<LPVOID> allocatedMemory;
