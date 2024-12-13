@@ -4,10 +4,12 @@
 #include <TlHelp32.h>
 #include <vector>
 #include <thread>
+#include <fstream>
 #include <string>
 #include <memory>
 
 #include "ntdll\ntdll.h"
+#include "utils\functions\functions.h"
 
 class Memory
 {
@@ -16,7 +18,7 @@ public:
 	DWORD id;
 	uintptr_t base;
 
-	std::string procName;
+	std::string ProcName;
 
 public:
 	std::vector<LPVOID> allocatedMemory;
@@ -35,8 +37,8 @@ public:
 	LPVOID AllocateMemory(size_t size);
 	bool FreeMemory(const uintptr_t& address);
 
-	bool m_CreateMutex(const std::string& mutexName, const LPSECURITY_ATTRIBUTES& attributes=0, const bool& initialOwner=1);
-		
+	bool m_CreateMutex(const std::string& mutexName, const LPSECURITY_ATTRIBUTES& attributes = 0, const bool& initialOwner = 1);
+
 	template <typename Ty>
 	Ty ReadMemory(const uintptr_t& address, bool checkOk = false)
 	{
@@ -55,15 +57,36 @@ public:
 	template <typename Ty>
 	bool WriteMemory(const uintptr_t& address, const Ty& buffer)
 	{
+		if (!InitializeNtdll()) {
+			std::cout << "init?" << "\n";
+			return false;
+		}
+		if (!handle) {
+			std::cout << "handle?" << "\n";
+			return false;
+		}
+
+		if (!IsMemoryOk(address)) {
+			std::cout << "is ok?" << "\n";
+			return false;
+		}
+
+		return NtWriteVirtualMemory(handle, reinterpret_cast<LPVOID>(address), (PVOID)&buffer, sizeof(buffer), nullptr) == 0;
+	}
+	template <typename Ty>
+	bool WriteMemory(const uintptr_t& address, const Ty& buffer, size_t size)
+	{
 		if (!InitializeNtdll()) return false;
 		if (!handle) return false;
 
 		if (!IsMemoryOk(address)) return false;
 
-		return NtWriteVirtualMemory(handle, reinterpret_cast<LPVOID>(address), (PVOID)&buffer, sizeof(buffer), nullptr) == 0;
+		return NtWriteVirtualMemory(handle, reinterpret_cast<LPVOID>(address), (PVOID)&buffer, size, nullptr) == 0;
 	}
 
 	static bool KillProcess(const char* processName = "this");
+
+	bool StandardInject(const std::string& path);
 
 public:
 	Memory(const char* procName = "");

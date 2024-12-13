@@ -12,7 +12,7 @@ DWORD Memory::GetIdByName(const char* procName)
 		do
 		{
 #ifdef UNICODE
-			if(wcscmp(pe.szExeFile, procName) == 0)
+			if (wcscmp(pe.szExeFile, procName) == 0)
 #else
 			if (strcmp(pe.szExeFile, procName) == 0)
 #endif
@@ -32,19 +32,19 @@ uintptr_t Memory::GetBaseAddress(const char* moduleName)
 	MODULEENTRY32 ModuleEntry32 = { 0 };
 	ModuleEntry32.dwSize = sizeof(MODULEENTRY32);
 
-	if (Module32First(hSnapshot, &ModuleEntry32)) 
+	if (Module32First(hSnapshot, &ModuleEntry32))
 	{
 		do {
 #ifdef UNICODE
-			if(wcscmp(szModule, moduleName) == 0;)
+			if (wcscmp(szModule, moduleName) == 0;)
 #else
-			if (strcmp(ModuleEntry32.szModule, moduleName) == 0) 
+			if (strcmp(ModuleEntry32.szModule, moduleName) == 0)
 #endif
 			{
 				dwModuleBaseAddress = (DWORD)ModuleEntry32.modBaseAddr;
 				break;
 			}
-		} while (Module32Next(hSnapshot, &ModuleEntry32)); 
+		} while (Module32Next(hSnapshot, &ModuleEntry32));
 
 
 	}
@@ -55,7 +55,7 @@ uintptr_t Memory::GetBaseAddress(const char* moduleName)
 bool Memory::Attach(const char* procName)
 {
 	if (strlen(procName) == 0) return true;
-	
+
 	id = GetIdByName(procName);
 
 	if (id == 0)
@@ -115,12 +115,13 @@ bool Memory::IsMemoryOk(const uintptr_t& address)
 
 LPVOID Memory::AllocateMemory(size_t size)
 {
-	LPVOID allocated = VirtualAllocEx(handle, 0, size, MEM_COMMIT | MEM_RELEASE, PAGE_READWRITE);
-	if (allocated != nullptr)
+	LPVOID allocated = VirtualAllocEx(handle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	if (allocated == 0)
 	{
-		allocatedMemory.push_back(allocated);
+		return 0;
 	}
 
+	allocatedMemory.push_back(allocated);
 	return allocated;
 }
 
@@ -164,9 +165,58 @@ bool Memory::KillProcess(const char* processName)
 	return TerminateProcess(mem->handle, 0);
 }
 
+bool Memory::StandardInject(const std::string& path)
+{
+	std::fstream x(path);
+	if (!x.good())
+	{
+		std::cerr << "Failed to locate DLL. Error: " << utilsFuncs::GetLastErrorStr() << "\n";
+		return false;
+	}
+	x.close();
+
+	LPVOID allocatedMemory = AllocateMemory(path.length() + 1);
+	if (allocatedMemory == nullptr)
+	{
+		std::cerr << "failed to alloc mem. Error: " << utilsFuncs::GetLastErrorStr() << "\n";
+		return false;
+	}
+
+	if (!WriteMemory(reinterpret_cast<uintptr_t>(allocatedMemory), path.c_str(), path.length() + 1))
+	{
+		std::cerr << "failed to wpm. Error: " << utilsFuncs::GetLastErrorStr() << "\n";
+		return false;
+	}
+
+	HANDLE remoteThread = CreateRemoteThread(handle, NULL, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(LoadLibraryA), allocatedMemory, 0, NULL);
+	if (remoteThread == NULL)
+	{
+		std::cerr << "failed CRT. Error: " << utilsFuncs::GetLastErrorStr() << "\n";
+		return false;
+	}
+
+	WaitForSingleObject(remoteThread, INFINITE);
+
+	DWORD threadExitCode;
+	if (!GetExitCodeThread(remoteThread, &threadExitCode))
+	{
+		std::cerr << "failed to get exit code" << utilsFuncs::GetLastErrorStr() << "\n";
+		CloseHandle(remoteThread);
+		return false;
+	}
+
+	CloseHandle(remoteThread);
+
+	return threadExitCode != 0; 
+}
+
 Memory::Memory(const char* procName)
 {
-	if (strlen(procName) != 0) Attach(procName);
+	if (strlen(procName) != 0)
+	{
+		ProcName = procName; 
+		Attach(procName);
+	}
 }
 
 Memory::~Memory()
@@ -176,5 +226,6 @@ Memory::~Memory()
 
 bool Memory::TheCheck()
 {
-	return this != nullptr && !this->procName.empty() && this->handle == nullptr;
+	return !this->ProcName.empty() && this->handle != nullptr;
 }
+
